@@ -286,17 +286,17 @@ public class UserRepo {
             SELECT u.id,
                    u.fullname,
                    u.email,
-                   st.name                                                                         AS 'status_name',
-                   st.color                                                                        AS 'status_color',
-                   SUM(COUNT(t.id)) OVER (PARTITION BY st.id)                                      AS 'total_task_by_status',
-                   IFNULL(ROUND((COUNT(t.id) / NULLIF(SUM(COUNT(t.id)) OVER (), 0)) * 100, 2), 0.) AS 'task_status_rate',
+                   st.name                                                                         AS status_name,
+                   st.color                                                                        AS status_color,
+                   SUM(COUNT(t.id)) OVER (PARTITION BY st.id)                                      AS total_task_by_status,
+                   IFNULL(ROUND((COUNT(t.id) / NULLIF(SUM(COUNT(t.id)) OVER (), 0)) * 100, 2), 0.) AS task_status_rate,
                    IF(COUNT(t.id) = 0, JSON_ARRAY(),
                       JSON_ARRAYAGG(
                               JSON_OBJECT(
-                                      'task_id', t.id,
-                                      'task_name', t.name,
-                                      'start_date', t.start_date,
-                                      'end_date', t.end_date
+                                      task_id, t.id,
+                                      task_name, t.name,
+                                      start_date, t.start_date,
+                                      end_date, t.end_date
                               )
                       )
                    )                                                                               AS task_details
@@ -338,7 +338,7 @@ public class UserRepo {
                     List<UserTaskDetailDTO> userTaskDetailsList = mapper.readValue(
                         taskDetailsJson,
                         new TypeReference<>() {
-                            // Jackson's solution to Java's type erasure problem by using anonymous subclass
+                            // Jacksons solution to Javas type erasure problem by using anonymous subclass
                         }
                     );
 

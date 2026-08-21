@@ -184,16 +184,16 @@ public class ProjectRepo {
         String query = """
             WITH UserInProject AS (
                 SELECT
-                    COALESCE(t.project_id, 1)            AS 'project_id',
-                    t.id                                 AS 'task_id',
-                    t.name                               AS 'task_name',
-                    COALESCE(t.user_id, u.id)            AS 'user_id',
+                    COALESCE(t.project_id, 1)            AS project_id,
+                    t.id                                 AS task_id,
+                    t.name                               AS task_name,
+                    COALESCE(t.user_id, u.id)            AS user_id,
                     u.fullname,
-                    st.name                              AS 'status_name',
-                    st.color                             AS 'status_color',
+                    st.name                              AS status_name,
+                    st.color                             AS status_color,
                     t.submit_message,
                     t.submit_time,
-                    COUNT(t.id) OVER (PARTITION BY u.id) AS 'task_count'
+                    COUNT(t.id) OVER (PARTITION BY u.id) AS task_count
                 FROM users u
                          CROSS JOIN status st
                          LEFT JOIN tasks t ON t.user_id = u.id AND
@@ -202,17 +202,17 @@ public class ProjectRepo {
                 ORDER BY t.user_id, t.id
             )
             SELECT project_id, user_id, fullname, status_name, status_color,
-                   IFNULL(SUM(COUNT(task_id)) OVER (PARTITION BY status_name), 0) AS 'total_task_by_status',
-                   IFNULL(ROUND(SUM(COUNT(task_id)) OVER (PARTITION BY status_name) / NULLIF(SUM(COUNT(task_id)) OVER (), 0) * 100, 2), 0.) AS 'task_status_rate',
-                   SUM(COUNT(task_id)) OVER (PARTITION BY user_id, status_name) AS 'user_total_task_by_status',
-                   IFNULL(ROUND(COUNT(task_id) / NULLIF(SUM(COUNT(task_id)) OVER (PARTITION BY user_id), 0) * 100, 2), 0.) AS 'user_task_status_rate',
+                   IFNULL(SUM(COUNT(task_id)) OVER (PARTITION BY status_name), 0) AS total_task_by_status,
+                   IFNULL(ROUND(SUM(COUNT(task_id)) OVER (PARTITION BY status_name) / NULLIF(SUM(COUNT(task_id)) OVER (), 0) * 100, 2), 0.) AS task_status_rate,
+                   SUM(COUNT(task_id)) OVER (PARTITION BY user_id, status_name) AS user_total_task_by_status,
+                   IFNULL(ROUND(COUNT(task_id) / NULLIF(SUM(COUNT(task_id)) OVER (PARTITION BY user_id), 0) * 100, 2), 0.) AS user_task_status_rate,
                    IF(COUNT(task_id) = 0, JSON_ARRAY(),
                       JSON_ARRAYAGG(
                               JSON_OBJECT(
-                                      'task_id', task_id,
-                                      'task_name', task_name,
-                                      'submit_message', submit_message,
-                                      'submit_time', submit_time
+                                      task_id, task_id,
+                                      task_name, task_name,
+                                      submit_message, submit_message,
+                                      submit_time, submit_time
                               )
                       )
                    )                                                     AS task_details
@@ -242,7 +242,7 @@ public class ProjectRepo {
                         projectStatusStatsDTO.setProjectId(id);
                     }
 
-                    // Build project's BaseTaskStatusModel
+                    // Build projects BaseTaskStatusModel
                     String statusName = rs.getString("status_name");
                     if (!projectStatusStatsDTO.getTaskStatusTotalMap().containsKey(statusName)) {
                         projectStatusStatsDTO.getTaskStatusTotalMap().put(statusName, rs.getInt("total_task_by_status"));
@@ -274,7 +274,7 @@ public class ProjectRepo {
                         List<UserTaskDetailDTO> userTaskDetailList = mapper.readValue(
                             taskDetailJson,
                             new TypeReference<>() {
-                                // Jackson's solution to Java's type erasure problem by using anonymous subclass
+                                // Jacksons solution to Javas type erasure problem by using anonymous subclass
                             }
                         );
 

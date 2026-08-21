@@ -24,9 +24,9 @@ public class TaskRepo {
 
         String query = """
                 SELECT t.id, t.name, t.start_date, t.end_date,
-                       prj.name AS 'project_name',
-                       st.name AS 'status_name', st.color AS 'status_color',
-                       u.fullname AS 'user_name'
+                       prj.name AS project_name,
+                       st.name AS status_name, st.color AS status_color,
+                       u.fullname AS user_name
                 FROM tasks t
                     JOIN projects prj ON t.project_id = prj.id
                     JOIN status st ON t.status_id = st.id
@@ -65,9 +65,9 @@ public class TaskRepo {
         // evade SQL Injection with "?"
         String query = """
                 SELECT t.id, t.name, t.start_date, t.end_date,
-                       prj.name AS 'project_name',
-                       st.name AS 'status_name', st.color AS 'status_color',
-                       u.fullname AS 'user_name'
+                       prj.name AS project_name,
+                       st.name AS status_name, st.color AS status_color,
+                       u.fullname AS user_name
                 FROM tasks t
                     JOIN projects prj ON t.project_id = prj.id
                     JOIN status st ON t.status_id = st.id
@@ -206,7 +206,7 @@ public class TaskRepo {
         List<TaskStatusCountDTO> objLst = new ArrayList<>();
 
         String query = """
-                SELECT st.name, st.color, COUNT(t.status_id) AS 'num_task'
+                SELECT st.name, st.color, COUNT(t.status_id) AS num_task
                 FROM tasks t
                     RIGHT JOIN status st ON t.status_id = st.id
                 GROUP BY t.status_id, st.name, st.color;

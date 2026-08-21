@@ -203,3 +203,6 @@ UPDATE users SET first_name = 'Van Mot' WHERE id = 1;
 UPDATE users SET first_name = 'Van Hai' WHERE id = 2;
 UPDATE users SET first_name = 'Van Ba' WHERE id = 3;
 UPDATE users SET first_name = 'Van Tu' WHERE id = 4;
+
+-- test query
+SELECT * FROM users;

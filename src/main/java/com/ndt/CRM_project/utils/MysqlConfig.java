@@ -17,7 +17,6 @@ public class MysqlConfig {
             // Class.forName("com.mysql.jdbc.Driver");
 
             conn = DriverManager.getConnection(url, user, password);
-            return conn;
         } catch (Exception e) {
             System.out.println(e.getMessage());
 

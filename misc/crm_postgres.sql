@@ -208,8 +208,6 @@ UPDATE users SET first_name = 'Van Tu' WHERE id = 4;
 SELECT * FROM users;
 
 
-
-
 WITH UserInProject AS (
     SELECT
         COALESCE(t.project_id, 1)            AS project_id,
@@ -255,3 +253,28 @@ FROM UserInProject
 WHERE task_count > 0
 GROUP BY project_id, user_id, fullname, status_name, status_color
 ORDER BY user_id;
+
+
+SELECT u.id,
+       u.fullname,
+       u.email,
+       st.name                                                                    AS status_name,
+       st.color                                                                   AS status_color,
+       SUM(COUNT(t.id)) OVER (PARTITION BY st.id)                                 AS total_task_by_status,
+       COALESCE(ROUND(
+                        (COUNT(t.id)::numeric / NULLIF(SUM(COUNT(t.id)) OVER (), 0)) * 100, 2), 0.0) AS task_status_rate,
+       CASE WHEN COUNT(t.id) = 0 THEN '[]'::jsonb
+            ELSE jsonb_agg(
+                    jsonb_build_object(
+                            'task_id', t.id,
+                            'task_name', t.name,
+                            'start_date', t.start_date,
+                            'end_date', t.end_date
+                    )
+                 )
+           END                                                                        AS task_details
+FROM users u
+         CROSS JOIN status st
+         LEFT JOIN tasks t ON t.user_id = u.id AND t.status_id = st.id
+WHERE u.id = ?
+GROUP BY u.id, u.fullname, u.email, st.id, st.name, st.color;

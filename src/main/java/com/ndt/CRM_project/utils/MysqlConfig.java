@@ -2,7 +2,6 @@ package com.ndt.CRM_project.utils;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.SQLException;
 
 
 public class MysqlConfig {
@@ -21,6 +20,13 @@ public class MysqlConfig {
             return conn;
         } catch (Exception e) {
             System.out.println(e.getMessage());
+
+            // Hot-fix for using free hosting service from Supabase !
+            try {
+                conn = PostgresqlConfig.getConnection();
+            } catch (Exception e1) {
+                System.out.println(e1.getMessage());
+            }
         }
         return conn;
     }

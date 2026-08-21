@@ -89,6 +89,12 @@
             <version>9.7.0</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.7.13</version>
+            <scope>compile</scope>
+        </dependency>
 
         <!-- Apache Commons -->
         <dependency>

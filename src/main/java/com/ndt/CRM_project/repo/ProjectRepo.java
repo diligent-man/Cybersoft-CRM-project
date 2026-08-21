@@ -183,43 +183,42 @@ public class ProjectRepo {
     public Optional<ProjectTaskStatusStatsDTO> findProjectStatusById(int id) {
         String query = """
             WITH UserInProject AS (
-                SELECT
-                    COALESCE(t.project_id, 1)            AS project_id,
-                    t.id                                 AS task_id,
-                    t.name                               AS task_name,
-                    COALESCE(t.user_id, u.id)            AS user_id,
-                    u.fullname,
-                    st.name                              AS status_name,
-                    st.color                             AS status_color,
-                    t.submit_message,
-                    t.submit_time,
-                    COUNT(t.id) OVER (PARTITION BY u.id) AS task_count
-                FROM users u
-                         CROSS JOIN status st
-                         LEFT JOIN tasks t ON t.user_id = u.id AND
-                                              t.status_id = st.id AND
-                                              t.project_id = ?
-                ORDER BY t.user_id, t.id
+                 SELECT
+                     COALESCE(t.project_id, 1)            AS project_id,
+                     t.id                                 AS task_id,
+                     t.name                               AS task_name,
+                     COALESCE(t.user_id, u.id)            AS user_id,
+                     u.fullname,
+                     st.name                              AS status_name,
+                     st.color                             AS status_color,
+                     t.submit_message,
+                     t.submit_time,
+                     COUNT(t.id) OVER (PARTITION BY u.id) AS task_count
+                 FROM users u
+                          CROSS JOIN status st
+                          LEFT JOIN tasks t ON t.user_id = u.id AND
+                                               t.status_id = st.id AND
+                                               t.project_id = ?
             )
             SELECT project_id, user_id, fullname, status_name, status_color,
-                   IFNULL(SUM(COUNT(task_id)) OVER (PARTITION BY status_name), 0) AS total_task_by_status,
-                   IFNULL(ROUND(SUM(COUNT(task_id)) OVER (PARTITION BY status_name) / NULLIF(SUM(COUNT(task_id)) OVER (), 0) * 100, 2), 0.) AS task_status_rate,
-                   SUM(COUNT(task_id)) OVER (PARTITION BY user_id, status_name) AS user_total_task_by_status,
-                   IFNULL(ROUND(COUNT(task_id) / NULLIF(SUM(COUNT(task_id)) OVER (PARTITION BY user_id), 0) * 100, 2), 0.) AS user_task_status_rate,
-                   IF(COUNT(task_id) = 0, JSON_ARRAY(),
-                      JSON_ARRAYAGG(
-                              JSON_OBJECT(
-                                      task_id, task_id,
-                                      task_name, task_name,
-                                      submit_message, submit_message,
-                                      submit_time, submit_time
-                              )
-                      )
-                   )                                                     AS task_details
-            FROM UserInProject
-            WHERE task_count > 0
-            GROUP BY project_id, user_id, fullname, status_name, status_name, status_color
-            ORDER BY user_id;
+                COALESCE(SUM(COUNT(task_id)) OVER (PARTITION BY status_name), 0) AS total_task_by_status, 
+                COALESCE(ROUND(SUM(COUNT(task_id)) OVER (PARTITION BY status_name)::numeric / NULLIF(SUM(COUNT(task_id)) OVER (), 0) * 100, 2), 0.0) AS task_status_rate,
+                SUM(COUNT(task_id)) OVER (PARTITION BY user_id, status_name) AS user_total_task_by_status,
+                COALESCE(ROUND(COUNT(task_id)::numeric / NULLIF(SUM(COUNT(task_id)) OVER (PARTITION BY user_id), 0) * 100, 2), 0.0) AS user_task_status_rate,
+                CASE WHEN COUNT(task_id) = 0 THEN '[]'::jsonb
+                     ELSE jsonb_agg(
+                             jsonb_build_object(
+                                     'task_id', task_id,
+                                     'task_name', task_name,
+                                     'submit_message', submit_message,
+                                     'submit_time', submit_time
+                             )
+                          )
+                END AS task_details
+             FROM UserInProject
+             WHERE task_count > 0
+             GROUP BY project_id, user_id, fullname, status_name, status_color
+             ORDER BY user_id;
             """;
 
         ProjectTaskStatusStatsDTO projectStatusStatsDTO = null;
